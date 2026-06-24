@@ -15,7 +15,7 @@ const HIGHLIGHTS = [
 ];
 
 export default function LoginPage() {
-  const { user, signIn, signUp, guest, mode, loading } = useAuth();
+  const { user, signIn, signUp, guest, mode, loading, notice, clearNotice } = useAuth();
   const router = useRouter();
   const [tab, setTab] = useState<"in" | "up">("in");
   const [name, setName] = useState("");
@@ -106,6 +106,12 @@ export default function LoginPage() {
             {tab === "in" ? "Ingresá para continuar tu progreso." : "Empezá a construir tu sistema."}
           </p>
 
+          {notice && (
+            <p className="mt-4 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning">
+              {notice}
+            </p>
+          )}
+
           <div className="mt-5 inline-flex w-full rounded-lg border border-border bg-surface-2 p-1">
             {(["in", "up"] as const).map((t) => (
               <button
@@ -113,6 +119,7 @@ export default function LoginPage() {
                 onClick={() => {
                   setTab(t);
                   setError(null);
+                  clearNotice();
                 }}
                 className={`flex-1 rounded-md py-1.5 text-sm font-medium transition ${
                   tab === t ? "bg-primary text-primary-foreground" : "text-muted hover:text-foreground"

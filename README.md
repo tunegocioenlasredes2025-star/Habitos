@@ -69,6 +69,16 @@ Abrí http://localhost:3000. Podés entrar como **invitado** o crear una cuenta 
 
 5. Reiniciá `npm run dev`. La app ahora usa Supabase con auth real y RLS por usuario.
 
+### Panel de administración (opcional)
+
+Para habilitar un rol admin que pueda ver todas las cuentas y **activar/desactivar** usuarios:
+
+1. En el **SQL Editor** de Supabase ejecutá [`supabase/admin.sql`](supabase/admin.sql) (agrega `is_admin`/`is_active`, las políticas RLS de admin y el helper `is_admin()`).
+2. El email definido en ese archivo queda como administrador automáticamente (al registrarse o, si ya existía, en el acto).
+3. Al iniciar sesión con esa cuenta aparece la sección **Administración** en el menú.
+
+Las cuentas desactivadas no pueden iniciar sesión hasta que un admin las reactive (sus datos se conservan).
+
 ---
 
 ## Deploy en Vercel

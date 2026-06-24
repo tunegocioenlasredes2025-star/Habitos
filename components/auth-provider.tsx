@@ -14,6 +14,9 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   mode: "local" | "supabase";
+  isAdmin: boolean;
+  notice: string | null;
+  clearNotice: () => void;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -47,7 +50,38 @@ function writeAccounts(list: LocalAccount[]) {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const mode = supabaseConfigured ? "supabase" : "local";
+  const clearNotice = useCallback(() => setNotice(null), []);
+
+  // Resolve admin role + enforce account deactivation (Supabase mode).
+  useEffect(() => {
+    if (!supabaseConfigured || !user) {
+      setIsAdmin(false);
+      return;
+    }
+    let active = true;
+    const sb = getSupabase()!;
+    sb.from("profiles")
+      .select("is_admin, is_active")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!active) return;
+        if (data && data.is_active === false) {
+          setNotice("Tu cuenta fue desactivada por un administrador.");
+          sb.auth.signOut();
+          setUser(null);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(Boolean(data?.is_admin));
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   // Bootstrap session.
   useEffect(() => {
@@ -164,7 +198,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, mode, signIn, signUp, signOut, guest }}>
+    <AuthContext.Provider
+      value={{ user, loading, mode, isAdmin, notice, clearNotice, signIn, signUp, signOut, guest }}
+    >
       {children}
     </AuthContext.Provider>
   );

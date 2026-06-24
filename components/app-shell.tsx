@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, LogOut, Cloud, HardDrive, Sparkles } from "lucide-react";
-import { NAV } from "./nav-config";
+import { Menu, X, LogOut, Cloud, HardDrive, Sparkles, Shield } from "lucide-react";
+import { NAV, type NavItem } from "./nav-config";
 import { useAuth } from "./auth-provider";
 import { useData } from "./data-provider";
 import { computePoints, levelInfo, levelTitle } from "@/lib/gamification";
@@ -44,11 +44,15 @@ function LevelCard() {
   );
 }
 
+const ADMIN_ITEM: NavItem = { href: "/admin", label: "Administración", icon: Shield };
+
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { isAdmin } = useAuth();
+  const items = isAdmin ? [...NAV, ADMIN_ITEM] : NAV;
   return (
     <nav className="flex flex-col gap-1">
-      {NAV.map((item) => {
+      {items.map((item) => {
         const active = pathname === item.href;
         const Icon = item.icon;
         return (

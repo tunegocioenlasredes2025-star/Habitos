@@ -14,8 +14,12 @@ create table if not exists public.profiles (
   email        text,
   display_name text not null default 'Usuario',
   points       integer not null default 0,
+  is_admin     boolean not null default false,
+  is_active    boolean not null default true,
   created_at   timestamptz not null default now()
 );
+
+-- Admin role + deactivation are configured in admin.sql (run it after this file).
 
 -- ------------------------------------------------------------
 -- habits
