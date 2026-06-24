@@ -52,22 +52,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [roleLoading, setRoleLoading] = useState(supabaseConfigured);
+  const [roleResolvedFor, setRoleResolvedFor] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const mode = supabaseConfigured ? "supabase" : "local";
   const clearNotice = useCallback(() => setNotice(null), []);
+
+  // True only while we have a user whose role hasn't been resolved yet — so the
+  // admin guard never sees a false-negative, and logged-out users still redirect.
+  const roleLoading = supabaseConfigured && !!user && roleResolvedFor !== user.id;
 
   // Resolve admin role + enforce account deactivation (Supabase mode).
   useEffect(() => {
     if (!supabaseConfigured || !user) {
       setIsAdmin(false);
-      // In cloud mode keep "resolving" until a real user + role load, so the
-      // admin guard never sees a false-negative during the null→user gap.
-      setRoleLoading(supabaseConfigured && !user ? true : false);
       return;
     }
     let active = true;
-    setRoleLoading(true);
     const sb = getSupabase()!;
     sb.from("profiles")
       .select("is_admin, is_active")
@@ -82,8 +82,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsAdmin(false);
         } else {
           setIsAdmin(Boolean(data?.is_admin));
+          setRoleResolvedFor(user.id);
         }
-        setRoleLoading(false);
       });
     return () => {
       active = false;

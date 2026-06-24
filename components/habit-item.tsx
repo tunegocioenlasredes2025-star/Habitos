@@ -111,10 +111,10 @@ export function HabitItem({
       {onMenu && (
         <button
           onClick={onMenu}
-          className="flex h-8 w-7 shrink-0 items-center justify-center rounded-lg text-muted-2 opacity-0 transition hover:bg-surface-2 hover:text-foreground group-hover:opacity-100"
+          className="flex h-9 w-8 shrink-0 items-center justify-center rounded-lg text-muted-2 transition hover:bg-surface-2 hover:text-foreground"
           aria-label="Opciones"
         >
-          <MoreVertical size={16} />
+          <MoreVertical size={18} />
         </button>
       )}
     </div>

@@ -12,8 +12,9 @@ import { Progress } from "./ui/progress";
 import { cn } from "@/lib/utils";
 
 function Brand({ collapsed }: { collapsed?: boolean }) {
+  const { isAdmin } = useAuth();
   return (
-    <Link href="/dashboard" className="flex items-center gap-2.5">
+    <Link href={isAdmin ? "/admin" : "/dashboard"} className="flex items-center gap-2.5">
       <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/30">
         <Sparkles size={18} className="text-white" />
       </div>
@@ -49,7 +50,8 @@ const ADMIN_ITEM: NavItem = { href: "/admin", label: "Administración", icon: Sh
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { isAdmin } = useAuth();
-  const items = isAdmin ? [...NAV, ADMIN_ITEM] : NAV;
+  // Admin accounts are control-only: they only see the admin panel.
+  const items = isAdmin ? [ADMIN_ITEM] : NAV;
   return (
     <nav className="flex flex-col gap-1">
       {items.map((item) => {
@@ -78,11 +80,11 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function UserFooter({ onNavigate }: { onNavigate?: () => void }) {
-  const { user, signOut, mode } = useAuth();
+  const { user, signOut, mode, isAdmin } = useAuth();
   const initial = (user?.display_name || "U").charAt(0).toUpperCase();
   return (
     <div className="flex flex-col gap-3">
-      <LevelCard />
+      {!isAdmin && <LevelCard />}
       <div className="flex items-center gap-2.5 rounded-xl border border-border bg-surface-2 p-2.5">
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-primary text-sm font-semibold text-white">
           {initial}
@@ -189,6 +191,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 function BottomNav() {
   const pathname = usePathname();
+  const { isAdmin } = useAuth();
+  // Admin is control-only — no bottom tab bar (uses the side menu instead).
+  if (isAdmin) return null;
   const items = NAV.filter((i) => i.primary);
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/90 backdrop-blur-xl lg:hidden">

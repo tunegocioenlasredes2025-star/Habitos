@@ -1,18 +1,25 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { AppShell } from "@/components/app-shell";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin, roleLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !user) router.replace("/login");
-  }, [loading, user, router]);
+    if (loading || roleLoading) return;
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+    // Admin accounts are control-only: keep them on the admin panel.
+    if (isAdmin && !pathname.startsWith("/admin")) router.replace("/admin");
+  }, [loading, roleLoading, user, isAdmin, pathname, router]);
 
   if (loading || !user) {
     return (
