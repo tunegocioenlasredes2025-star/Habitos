@@ -15,6 +15,7 @@ interface AuthContextValue {
   loading: boolean;
   mode: "local" | "supabase";
   isAdmin: boolean;
+  roleLoading: boolean;
   notice: string | null;
   clearNotice: () => void;
   signIn: (email: string, password: string) => Promise<void>;
@@ -51,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [roleLoading, setRoleLoading] = useState(supabaseConfigured);
   const [notice, setNotice] = useState<string | null>(null);
   const mode = supabaseConfigured ? "supabase" : "local";
   const clearNotice = useCallback(() => setNotice(null), []);
@@ -59,9 +61,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!supabaseConfigured || !user) {
       setIsAdmin(false);
+      // In cloud mode keep "resolving" until a real user + role load, so the
+      // admin guard never sees a false-negative during the null→user gap.
+      setRoleLoading(supabaseConfigured && !user ? true : false);
       return;
     }
     let active = true;
+    setRoleLoading(true);
     const sb = getSupabase()!;
     sb.from("profiles")
       .select("is_admin, is_active")
@@ -77,6 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setIsAdmin(Boolean(data?.is_admin));
         }
+        setRoleLoading(false);
       });
     return () => {
       active = false;
@@ -199,7 +206,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, mode, isAdmin, notice, clearNotice, signIn, signUp, signOut, guest }}
+      value={{ user, loading, mode, isAdmin, roleLoading, notice, clearNotice, signIn, signUp, signOut, guest }}
     >
       {children}
     </AuthContext.Provider>

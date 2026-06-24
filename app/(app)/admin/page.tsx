@@ -36,7 +36,7 @@ function Metric({ icon: Icon, value, label }: { icon: typeof Users; value: strin
 }
 
 export default function AdminPage() {
-  const { user, isAdmin, loading, mode } = useAuth();
+  const { user, isAdmin, roleLoading, loading, mode } = useAuth();
   const router = useRouter();
   const toast = useToast();
 
@@ -50,8 +50,8 @@ export default function AdminPage() {
   const allowed = mode === "supabase" && isAdmin;
 
   useEffect(() => {
-    if (!loading && !isAdmin) router.replace("/dashboard");
-  }, [loading, isAdmin, router]);
+    if (!loading && !roleLoading && !isAdmin) router.replace("/dashboard");
+  }, [loading, roleLoading, isAdmin, router]);
 
   const load = useMemo(
     () => async () => {
@@ -94,7 +94,7 @@ export default function AdminPage() {
   const total = rows.length;
   const active = rows.filter((r) => r.is_active).length;
 
-  if (loading || !isAdmin) {
+  if (loading || roleLoading || !isAdmin) {
     return (
       <div className="flex h-64 items-center justify-center text-muted">
         <Loader2 className="animate-spin" />
